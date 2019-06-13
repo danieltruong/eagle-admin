@@ -3,30 +3,32 @@ import { Resolve, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/r
 import { Observable } from 'rxjs/Observable';
 
 import { SearchService } from 'app/services/search.service';
-import { ApiService } from 'app/services/api';
+import { TableTemplateUtils } from 'app/shared/utils/table-template-utils';
 
 @Injectable()
 export class ActivityComponentResolver implements Resolve<Observable<object>> {
   constructor(
     private searchService: SearchService,
-    private api: ApiService
+    private tableTemplateUtils: TableTemplateUtils
   ) { }
 
-  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<object> {
+  resolve(route: ActivatedRouteSnapshot): Observable<object> {
     const activity = route.paramMap.get('activityId');
     if (activity) {
       return this.searchService.getItem(activity, 'RecentActivity');
     } else {
-      const pageNum = Number(route.queryParams['pageNum'] ? route.queryParams['pageNum'] : 1);
-      const pageSize = Number(route.queryParams['pageSize'] ? route.queryParams['pageSize'] : 10);
-      const sortBy = route.queryParams['sortBy'] ? route.queryParams['sortBy'] : '-dateAdded';
-      const keywords = route.params.keywords;
-      return this.searchService.getSearchResults(keywords,
+      let tableParams = this.tableTemplateUtils.getParamsFromUrl(route.params);
+      if (tableParams.sortBy === '') {
+        tableParams.sortBy = '-dateAdded';
+        this.tableTemplateUtils.updateUrl(tableParams.sortBy, tableParams.currentPage, tableParams.pageSize, null, tableParams.keywords);
+      }
+      return this.searchService.getSearchResults(
+        tableParams.keywords || '',
         'RecentActivity',
         null,
-        pageNum,
-        pageSize,
-        sortBy,
+        tableParams.currentPage,
+        tableParams.pageSize,
+        tableParams.sortBy,
         null,
         true);
     }

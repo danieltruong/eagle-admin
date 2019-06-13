@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 
@@ -11,6 +11,7 @@ import { ActivityTableRowsComponent } from './activity-table-rows/activity-table
 import { TableObject } from 'app/shared/components/table-template/table-object';
 import { TableParamsObject } from 'app/shared/components/table-template/table-params-object';
 import { TableTemplateUtils } from 'app/shared/utils/table-template-utils';
+import { SearchTerms } from 'app/models/search';
 
 @Component({
   selector: 'app-activity',
@@ -18,13 +19,14 @@ import { TableTemplateUtils } from 'app/shared/utils/table-template-utils';
   styleUrls: ['./activity.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ActivityComponent implements OnInit {
+export class ActivityComponent implements OnInit, OnDestroy {
   private ngUnsubscribe: Subject<boolean> = new Subject<boolean>();
   public loading = true;
 
   public tableParams: TableParamsObject = new TableParamsObject();
   public tableData: TableObject;
   public entries: RecentActivity[] = null;
+  public terms = new SearchTerms();
 
   public tableColumns: any[] = [
     {
@@ -72,27 +74,35 @@ export class ActivityComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.route.data
+    this.route.params
       .takeUntil(this.ngUnsubscribe)
-      .subscribe((res: any) => {
-        if (res) {
-          if (res.activities[0].data.meta && res.activities[0].data.meta.length > 0) {
-            this.tableParams.totalListItems = res.activities[0].data.meta[0].searchResultsTotal;
-            this.entries = res.activities[0].data.searchResults;
-          } else {
-            this.tableParams.totalListItems = 0;
-            this.entries = [];
-          }
-          this.setRowData();
-          this.loading = false;
-          this._changeDetectionRef.detectChanges();
-        } else {
-          alert('Uh-oh, couldn\'t load valued components');
-          // project not found --> navigate back to search
-          this.router.navigate(['/search']);
+      .subscribe(params => {
+        this.tableParams = this.tableTemplateUtils.getParamsFromUrl(params);
+        if (this.tableParams.sortBy === '') {
+          this.tableParams.sortBy = '+dateAdded';
+          this.tableTemplateUtils.updateUrl(this.tableParams.sortBy, this.tableParams.currentPage, this.tableParams.pageSize, null, this.tableParams.keywords);
         }
-      }
-      );
+        this.route.data
+          .takeUntil(this.ngUnsubscribe)
+          .subscribe((res: any) => {
+            if (res) {
+              if (res.activities[0].data.meta && res.activities[0].data.meta.length > 0) {
+                this.tableParams.totalListItems = res.activities[0].data.meta[0].searchResultsTotal;
+                this.entries = res.activities[0].data.searchResults;
+              } else {
+                this.tableParams.totalListItems = 0;
+                this.entries = [];
+              }
+              this.setRowData();
+              this.loading = false;
+              this._changeDetectionRef.detectChanges();
+            } else {
+              alert('Uh-oh, couldn\'t load valued components');
+              // project not found --> navigate back to search
+              this.router.navigate(['/search']);
+            }
+          });
+      });
   }
 
   public selectAction(action) {
@@ -145,7 +155,8 @@ export class ActivityComponent implements OnInit {
 
     this.tableParams = this.tableTemplateUtils.updateTableParams(this.tableParams, pageNumber, this.tableParams.sortBy);
 
-    this.searchService.getSearchResults('',
+    this.searchService.getSearchResults(
+      this.tableParams.keywords || '',
       'RecentActivity',
       null,
       pageNumber,
@@ -166,4 +177,26 @@ export class ActivityComponent implements OnInit {
       });
   }
 
+  public onSubmit() {
+    // dismiss any open snackbar
+    // if (this.snackBarRef) { this.snackBarRef.dismiss(); }
+
+    // NOTE: Angular Router doesn't reload page on same URL
+    // REF: https://stackoverflow.com/questions/40983055/how-to-reload-the-current-route-with-the-angular-2-router
+    // WORKAROUND: add timestamp to force URL to be different than last time
+
+    const params = this.terms.getParams();
+    params['ms'] = new Date().getMilliseconds();
+    params['dataset'] = this.terms.dataset;
+    params['currentPage'] = this.tableParams.currentPage = 1;
+    params['sortBy'] = this.tableParams.sortBy = '';
+    params['keywords'] = this.tableParams.keywords = this.tableParams.keywords;
+    params['pageSize'] = this.tableParams.pageSize = 10;
+    this.router.navigate(['activity', params]);
+  }
+
+  ngOnDestroy() {
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
+  }
 }

@@ -4,6 +4,8 @@ import { Observable } from 'rxjs';
 import { container } from '@angular/core/src/render3/instructions';
 
 import { SideBarService } from 'app/services/sidebar.service';
+import { filter } from 'rxjs/operators';
+import { StorageService } from 'app/services/storage.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -22,10 +24,13 @@ export class SidebarComponent implements OnInit {
   @HostBinding('class.is-toggled')
   isOpen = false;
 
-  constructor(router: Router,
+  constructor(private router: Router,
+              private storageService: StorageService,
               private sideBarService: SideBarService) {
-    router.events.filter((event: any) => event instanceof NavigationEnd)
-    .subscribe(event => {
+
+    router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(event => {
         this.routerSnapshot = event;
         this.SetActiveSidebarItem();
     });
@@ -55,6 +60,9 @@ export class SidebarComponent implements OnInit {
         case 'project-contracts': {
           break;
         }
+        case 'project-documents': {
+          break;
+        }
         case 'comment-periods': {
           break;
         }
@@ -66,7 +74,12 @@ export class SidebarComponent implements OnInit {
         }
       }
       this.currentProjectId = urlArray[1];
-      this.currentMenu = urlArray[2];
+      try {
+        this.currentMenu = urlArray[2];
+        this.currentMenu = urlArray[2].split(';')[0];
+      } catch (e) {
+        // When coming from search, it's blank.
+      }
       this.showProjectDetails = true;
     } else {
       this.currentProjectId = urlArray[0];
@@ -84,5 +97,10 @@ export class SidebarComponent implements OnInit {
 
   closeNav() {
     this.isNavMenuOpen = false;
+  }
+
+  goToDocuments(currentProjectId) {
+    this.storageService.state.projectDocumentTableParams = null;
+    this.router.navigate(['p', currentProjectId, 'project-documents']);
   }
 }

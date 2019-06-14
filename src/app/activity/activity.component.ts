@@ -4,8 +4,6 @@ import { Subject } from 'rxjs';
 
 import { RecentActivity } from 'app/models/recentActivity';
 
-import { SearchService } from 'app/services/search.service';
-
 import { ActivityTableRowsComponent } from './activity-table-rows/activity-table-rows.component';
 
 import { TableObject } from 'app/shared/components/table-template/table-object';
@@ -68,7 +66,6 @@ export class ActivityComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private searchService: SearchService,
     private _changeDetectionRef: ChangeDetectorRef,
     private tableTemplateUtils: TableTemplateUtils
   ) { }
@@ -79,7 +76,7 @@ export class ActivityComponent implements OnInit, OnDestroy {
       .subscribe(params => {
         this.tableParams = this.tableTemplateUtils.getParamsFromUrl(params);
         if (this.tableParams.sortBy === '') {
-          this.tableParams.sortBy = '+dateAdded';
+          this.tableParams.sortBy = '-dateAdded';
           this.tableTemplateUtils.updateUrl(this.tableParams.sortBy, this.tableParams.currentPage, this.tableParams.pageSize, null, this.tableParams.keywords);
         }
         this.route.data
@@ -145,53 +142,23 @@ export class ActivityComponent implements OnInit, OnDestroy {
     } else {
       this.tableParams.sortBy = '+' + column;
     }
-    this.getPaginated(this.tableParams.currentPage);
+    this.onSubmit(this.tableParams.currentPage);
   }
 
-  getPaginated(pageNumber) {
-    // Go to top of page after clicking to a different page.
-    window.scrollTo(0, 0);
-    this.loading = true;
-
-    this.tableParams = this.tableTemplateUtils.updateTableParams(this.tableParams, pageNumber, this.tableParams.sortBy);
-
-    this.searchService.getSearchResults(
-      this.tableParams.keywords || '',
-      'RecentActivity',
-      null,
-      pageNumber,
-      this.tableParams.pageSize,
-      this.tableParams.sortBy,
-      null,
-      true)
-      .takeUntil(this.ngUnsubscribe)
-      .subscribe((res: any) => {
-        if (res[0].data.meta && res[0].data.meta.length > 0) {
-          this.tableParams.totalListItems = res[0].data.meta[0].searchResultsTotal;
-          this.entries = res[0].data.searchResults;
-        }
-        this.tableTemplateUtils.updateUrl(this.tableParams.sortBy, this.tableParams.currentPage, this.tableParams.pageSize);
-        this.setRowData();
-        this.loading = false;
-        this._changeDetectionRef.detectChanges();
-      });
-  }
-
-  public onSubmit() {
-    // dismiss any open snackbar
-    // if (this.snackBarRef) { this.snackBarRef.dismiss(); }
-
+  public onSubmit(pageNumber) {
     // NOTE: Angular Router doesn't reload page on same URL
     // REF: https://stackoverflow.com/questions/40983055/how-to-reload-the-current-route-with-the-angular-2-router
     // WORKAROUND: add timestamp to force URL to be different than last time
+    this.loading = true;
+    this._changeDetectionRef.detectChanges();
 
     const params = this.terms.getParams();
     params['ms'] = new Date().getMilliseconds();
     params['dataset'] = this.terms.dataset;
-    params['currentPage'] = this.tableParams.currentPage = 1;
-    params['sortBy'] = this.tableParams.sortBy = '';
+    params['currentPage'] = this.tableParams.currentPage = pageNumber;
+    params['sortBy'] = this.tableParams.sortBy = this.tableParams.sortBy;
     params['keywords'] = this.tableParams.keywords = this.tableParams.keywords;
-    params['pageSize'] = this.tableParams.pageSize = 10;
+    params['pageSize'] = this.tableParams.pageSize = this.tableParams.pageSize;
     this.router.navigate(['activity', params]);
   }
 

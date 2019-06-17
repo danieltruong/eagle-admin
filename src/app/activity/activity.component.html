@@ -8,8 +8,12 @@
   </div>
 </div>
 
-<section class="container-fluid-padding">
-  <form #f="ngForm" class="search-form ui form" (ngSubmit)="onSubmit()">
+<!-- <div class="spinner-container" *ngIf="loading">
+  <div class="spinner-new rotating"></div>
+</div> -->
+
+<main class="container-fluid-padding">
+  <form #f="ngForm" class="search-form ui form" (ngSubmit)="onSubmit(1)">
     <p><b>Date Range Input:</b></p>
     <div class="form-row">
       <div class="form-group col-md-12">
@@ -55,10 +59,10 @@
   <br>
   <div *ngIf="tableParams.totalListItems > 0">
     <app-table-template [columns]="tableColumns" [data]="tableData" (onColumnSort)='setColumnSort($event)'
-      (onPageNumUpdate)='getPaginated($event)'>
+      (onPageNumUpdate)='onSubmit($event)'>
     </app-table-template>
   </div>
   <div *ngIf="tableParams.totalListItems === 0">
     No Activities/Updates.
   </div>
-</section>
+</main>

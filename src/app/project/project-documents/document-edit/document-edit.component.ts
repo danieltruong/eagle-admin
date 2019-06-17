@@ -27,9 +27,10 @@ export class DocumentEditComponent implements OnInit {
   public authors: any[] = [];
   public labels: any[] = [];
   public datePosted: NgbDateStruct = null;
-  public dateUploaded: NgbDateStruct = null;
   public isPublished = false;
   public loading = true;
+  public multiEdit = false;
+  public docNameInvalid = false;
 
   constructor(
     private config: ConfigService,
@@ -73,17 +74,16 @@ export class DocumentEditComponent implements OnInit {
             'authorsel': new FormControl(this.documents[0].documentAuthor),
             'labelsel': new FormControl(this.documents[0].milestone),
             'datePosted': new FormControl(this.utils.convertJSDateToNGBDate(new Date(this.documents[0].datePosted))),
-            'dateUploaded': new FormControl(this.utils.convertJSDateToNGBDate(new Date(this.documents[0].dateUploaded))),
             'displayName': new FormControl(this.documents[0].displayName),
             'description': new FormControl(this.documents[0].description)
           });
         } else {
+          this.multiEdit = true;
           this.myForm = new FormGroup({
             'doctypesel': new FormControl(),
             'authorsel': new FormControl(),
             'labelsel': new FormControl(),
-            'datePosted': new FormControl(this.utils.convertJSDateToNGBDate(new Date())),
-            'dateUploaded': new FormControl(this.utils.convertJSDateToNGBDate(new Date())),
+            'datePosted': new FormControl(),
             'displayName': new FormControl(),
             'description': new FormControl()
           });
@@ -105,6 +105,27 @@ export class DocumentEditComponent implements OnInit {
     }
   }
 
+  public validateChars() {
+    if ( this.myForm.value.displayName.match(/[\/|\\:*?"<>]/g) ) {
+      this.docNameInvalid = true;
+    } else {
+      this.docNameInvalid = false;
+    }
+  }
+
+  // on multi edit save, check if form fields have a value
+  multiEditGetUpdatedValue(formValue, docValue, isDate = false) {
+    if ( formValue !== null ) {
+      if ( isDate ) {
+        return new Date(moment(this.utils.convertFormGroupNGBDateToJSDate(formValue))).toISOString();
+      } else {
+        return formValue;
+      }
+    } else {
+      return docValue;
+    }
+  }
+
   save() {
     this.loading = true;
 
@@ -122,21 +143,42 @@ export class DocumentEditComponent implements OnInit {
       formData.append('project', this.currentProject._id);
       formData.append('documentSource', 'PROJECT');
 
-      doc.documentFileName !== null ? formData.append('documentFileName', doc.documentFileName) : Function.prototype;
-      this.myForm.value.description !== null ? formData.append('description', this.myForm.value.description) : Function.prototype;
-      this.myForm.value.displayName !== null ? formData.append('displayName', this.myForm.value.displayName) : Function.prototype;
+      if (!this.multiEdit) {
+        doc.documentFileName !== null ? formData.append('documentFileName', doc.documentFileName) : Function.prototype;
+        this.myForm.value.description !== null ? formData.append('description', this.myForm.value.description) : Function.prototype;
+        this.myForm.value.displayName !== null ? formData.append('displayName', this.myForm.value.displayName) : Function.prototype;
+        formData.append('milestone', this.myForm.value.labelsel);
+        formData.append('datePosted', new Date(moment(this.utils.convertFormGroupNGBDateToJSDate(this.myForm.get('datePosted').value))).toISOString());
+        formData.append('type', this.myForm.value.doctypesel);
+        formData.append('documentAuthor', this.myForm.value.authorsel);
+      } else {
+        doc.documentFileName !== null ? formData.append('documentFileName', doc.documentFileName) : Function.prototype;
+        doc.displayName !== null ? formData.append('displayName', doc.displayName) : Function.prototype;
+        doc.description !== null ? formData.append('description', doc.description) : Function.prototype;
 
-      formData.append('milestone', this.myForm.value.labelsel);
-      formData.append('dateUploaded', new Date(moment(this.utils.convertFormGroupNGBDateToJSDate(this.myForm.get('dateUploaded').value))).toISOString());
-      formData.append('datePosted', new Date(moment(this.utils.convertFormGroupNGBDateToJSDate(this.myForm.get('datePosted').value))).toISOString());
-      formData.append('type', this.myForm.value.doctypesel);
-      formData.append('documentAuthor', this.myForm.value.authorsel);
+        // apply changes to milestone if any
+        let milestone = this.multiEditGetUpdatedValue(this.myForm.value.labelsel, doc.milestone);
+        milestone !== undefined && milestone !== null ? formData.append('milestone', milestone) : Function.prototype;
+
+        // apply changes to datePosted if any
+        let datePosted = this.multiEditGetUpdatedValue(this.myForm.value.datePosted, doc.datePosted, true);
+        datePosted !== undefined && datePosted !== null ? formData.append('datePosted', datePosted) : Function.prototype;
+
+        // apply changes to type if any
+        let type = this.multiEditGetUpdatedValue(this.myForm.value.doctypesel, doc.type);
+        type !== undefined && type !== null ? formData.append('type', type) : Function.prototype;
+
+        // apply changes to documentAuthor if any
+        let documentAuthor = this.multiEditGetUpdatedValue(this.myForm.value.authorsel, doc.documentAuthor);
+        documentAuthor !== undefined && documentAuthor !== null ? formData.append('documentAuthor', documentAuthor) : Function.prototype;
+      }
 
       // TODO
       formData.append('labels', JSON.stringify(theLabels));
       observables.push(this.documentService.update(formData, doc._id));
     });
 
+    this.multiEdit = false;
     this.storageService.state = { type: 'form', data: null };
     this.storageService.state = { type: 'documents', data: null };
     this.storageService.state = { type: 'labels', data: null };

@@ -8,13 +8,9 @@
   </div>
 </div>
 
-<!-- <div class="spinner-container" *ngIf="loading">
-  <div class="spinner-new rotating"></div>
-</div> -->
-
 <main class="container-fluid-padding">
-  <form #f="ngForm" class="search-form ui form" (ngSubmit)="onSubmit(1)">
-    <p><b>Date Range Input:</b></p>
+  <form #f="ngForm" class="search-form ui form" (ngSubmit)="onSubmit()">
+    <p><b>Keyword Input:</b></p>
     <div class="form-row">
       <div class="form-group col-md-12">
         <div class="input-group main-search-field">
@@ -23,29 +19,60 @@
         </div>
       </div>
     </div>
-    <p><b>Date Range Input:</b></p>
+    <!-- TODO: Implement Date Range Input -->
+    <!-- <p><b>Date Range Input:</b></p>
     <div class="form-row">
       <div class="form-group col-md-6">
         <div class="input-group">
-          <input id="inputStartDate" container='body' type="text" class="form-control" placeholder="Select a start date"
-            name="addStartDate" ngbDatepicker #addStartDatePicker="ngbDatepicker">
+          <input type="text" class="form-control" placeholder="Select a start date" name="dateAddedStart"
+            [(ngModel)]="filter.dateAddedStart" [ngModelOptions]="{standalone: true}" ngbDatepicker
+            #dateAddedStartPicker="ngbDatepicker">
           <div class="input-group-append">
-            <button class="btn btn-outline-secondary calendar" (click)="addDatePicker.toggle()" type="button"></button>
+            <button class="btn btn-outline-secondary calendar" (click)="dateAddedStartPicker.toggle()"
+              type="button"></button>
           </div>
         </div>
       </div>
       <div class="form-group col-md-6">
         <div class="input-group">
-          <input id="inputEndDate" container='body' type="text" class="form-control" placeholder="Select a end date"
-            name="addEndDate" ngbDatepicker #addEndDatePicker="ngbDatepicker">
+          <input type="text" class="form-control" placeholder="Select a end date" name="dateAddedEnd"
+            [(ngModel)]="filter.dateAddedEnd" [ngModelOptions]="{standalone: true}" ngbDatepicker
+            #dateAddedEndPicker="ngbDatepicker">
           <div class="input-group-append">
-            <button class="btn btn-outline-secondary calendar" (click)="addDatePicker.toggle()" type="button"></button>
+            <button class="btn btn-outline-secondary calendar" (click)="dateAddedEndPicker.toggle()"
+              type="button"></button>
+          </div>
+        </div>
+      </div>
+    </div> -->
+    <p><b>Type Filters:</b></p>
+    <div class="form-row">
+      <div class="form-group col-md-8">
+        <div class="btn-group btn-group-toggle">
+          <div class="btn-group-toggle" data-toggle="buttons">
+            <label class="btn btn-primary" [class.active]="filterPublicCommentPeriod">
+              <input type="checkbox"
+                (click)="filterPublicCommentPeriod = !filterPublicCommentPeriod; toggleFilter('publicCommentPeriod');"
+                [(ngModel)]="filterPublicCommentPeriod" autocomplete="off" [ngModelOptions]="{standalone: true}">Public
+              Comment Period
+            </label>
+          </div>
+          &nbsp;
+          <div class="btn-group-toggle" data-toggle="buttons">
+            <label class="btn btn-primary" [class.active]="filterNews">
+              <input type="checkbox" (click)="filterNews = !filterNews; toggleFilter('news');" autocomplete="off"
+                [(ngModel)]="filterNews" [ngModelOptions]="{standalone: true}">News
+            </label>
           </div>
         </div>
       </div>
     </div>
     <button class="btn btn-primary" type="submit">
       <span>Search</span>
+    </button>
+    &nbsp;
+    <button class="btn btn-primary" (click)="onSubmit(1, true)" type="reset">
+      <span>Reset</span>
     </button>
     <div class="results mt-1">
       <p *ngIf="!loading && tableParams.totalListItems === 0">

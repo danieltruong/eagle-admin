@@ -10,6 +10,7 @@ import { TableObject } from 'app/shared/components/table-template/table-object';
 import { TableParamsObject } from 'app/shared/components/table-template/table-params-object';
 import { TableTemplateUtils } from 'app/shared/utils/table-template-utils';
 import { SearchTerms } from 'app/models/search';
+import { Utils } from 'app/shared/utils/utils';
 
 @Component({
   selector: 'app-activity',
@@ -25,6 +26,10 @@ export class ActivityComponent implements OnInit, OnDestroy {
   public tableData: TableObject;
   public entries: RecentActivity[] = null;
   public terms = new SearchTerms();
+  public searchForm = null;
+  public typeFilters = [];
+  public filterPublicCommentPeriod = false;
+  public filterNews = false;
 
   public tableColumns: any[] = [
     {
@@ -67,17 +72,26 @@ export class ActivityComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private _changeDetectionRef: ChangeDetectorRef,
-    private tableTemplateUtils: TableTemplateUtils
+    private tableTemplateUtils: TableTemplateUtils,
   ) { }
 
   ngOnInit() {
     this.route.params
       .takeUntil(this.ngUnsubscribe)
       .subscribe(params => {
-        this.tableParams = this.tableTemplateUtils.getParamsFromUrl(params);
+        // this.filter.dateAddedStart = params.dateAddedStart == null || params.dateAddedStart === '' ? null : this.utils.convertJSDateToNGBDate(new Date(params.dateAddedStart));
+        // this.filter.dateAddedEnd = params.dateAddedEnd == null || params.dateAddedEnd === '' ? null : this.utils.convertJSDateToNGBDate(new Date(params.dateAddedEnd));
+        if (params.type != null) {
+          this.typeFilters = params.type.split(',');
+          if (this.typeFilters.includes('publicCommentPeriod')) { this.filterPublicCommentPeriod = true; }
+          if (this.typeFilters.includes('news')) { this.filterNews = true; }
+        }
+
+        let filterForUrl = params.type == null ? null : { 'type': params.type };
+        this.tableParams = this.tableTemplateUtils.getParamsFromUrl(params, filterForUrl);
         if (this.tableParams.sortBy === '') {
           this.tableParams.sortBy = '-dateAdded';
-          this.tableTemplateUtils.updateUrl(this.tableParams.sortBy, this.tableParams.currentPage, this.tableParams.pageSize, null, this.tableParams.keywords);
+          this.tableTemplateUtils.updateUrl(this.tableParams.sortBy, this.tableParams.currentPage, this.tableParams.pageSize, filterForUrl, this.tableParams.keywords);
         }
         this.route.data
           .takeUntil(this.ngUnsubscribe)
@@ -145,7 +159,7 @@ export class ActivityComponent implements OnInit, OnDestroy {
     this.onSubmit(this.tableParams.currentPage);
   }
 
-  public onSubmit(pageNumber) {
+  public onSubmit(pageNumber = 1, reset = false) {
     // NOTE: Angular Router doesn't reload page on same URL
     // REF: https://stackoverflow.com/questions/40983055/how-to-reload-the-current-route-with-the-angular-2-router
     // WORKAROUND: add timestamp to force URL to be different than last time
@@ -156,10 +170,31 @@ export class ActivityComponent implements OnInit, OnDestroy {
     params['ms'] = new Date().getMilliseconds();
     params['dataset'] = this.terms.dataset;
     params['currentPage'] = this.tableParams.currentPage = pageNumber;
-    params['sortBy'] = this.tableParams.sortBy = this.tableParams.sortBy;
-    params['keywords'] = this.tableParams.keywords = this.tableParams.keywords;
-    params['pageSize'] = this.tableParams.pageSize = this.tableParams.pageSize;
+
+    if (reset) {
+      this.tableParams.sortBy = '';
+      this.tableParams.pageSize = 10;
+      this.tableParams.keywords = '';
+      // this.filter.dateAddedStart = '';
+      // this.filter.dateAddedEnd = '';
+      this.typeFilters = [];
+    }
+
+    params['sortBy'] = this.tableParams.sortBy;
+    params['pageSize'] = this.tableParams.pageSize;
+    params['keywords'] = this.tableParams.keywords;
+    // params['dateAddedStart'] = this.utils.convertFormGroupNGBDateToJSDate(this.filter.dateAddedStart).toISOString();
+    // params['dateAddedEnd'] = this.utils.convertFormGroupNGBDateToJSDate(this.filter.dateAddedEnd).toISOString();
+    if (this.typeFilters.length > 0) { params['type'] = this.typeFilters.toString(); }
     this.router.navigate(['activity', params]);
+  }
+
+  public toggleFilter(filterItem) {
+    if (this.typeFilters.includes(filterItem)) {
+      this.typeFilters = this.typeFilters.filter(item => item !== filterItem);
+    } else {
+      this.typeFilters.push(filterItem);
+    }
   }
 
   ngOnDestroy() {

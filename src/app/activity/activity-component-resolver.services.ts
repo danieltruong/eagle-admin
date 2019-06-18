@@ -17,7 +17,21 @@ export class ActivityComponentResolver implements Resolve<Observable<object>> {
     if (activity) {
       return this.searchService.getItem(activity, 'RecentActivity');
     } else {
-      let tableParams = this.tableTemplateUtils.getParamsFromUrl(route.params);
+      // this.filterForUrl.dateAddedStart = route.params.dateAddedStart == null || route.params.dateAddedStart === '' ? '' : route.params.dateAddedStart;
+      // this.filterForUrl.dateAddedEnd = route.params.dateAddedEnd == null || route.params.dateAddedEnd === '' ? '' : route.params.dateAddedEnd;
+
+      let filter = {};
+      let filterForApi = {};
+      if (route.params.type != null) {
+        filter['type'] = route.params.type;
+        let typeFiltersFromRoute = route.params.type.split(',');
+        let typeFiltersForApi = [];
+        if (typeFiltersFromRoute.includes('publicCommentPeriod')) { typeFiltersForApi.push('Public Comment Period'); }
+        if (typeFiltersFromRoute.includes('news')) { typeFiltersForApi.push('News'); }
+        if (typeFiltersForApi.length > 0) { filterForApi = { 'type': typeFiltersForApi.toString() }; }
+      }
+
+      let tableParams = this.tableTemplateUtils.getParamsFromUrl(route.params, filter);
       if (tableParams.sortBy === '') {
         tableParams.sortBy = '-dateAdded';
         this.tableTemplateUtils.updateUrl(tableParams.sortBy, tableParams.currentPage, tableParams.pageSize, null, tableParams.keywords);
@@ -30,7 +44,8 @@ export class ActivityComponentResolver implements Resolve<Observable<object>> {
         tableParams.pageSize,
         tableParams.sortBy,
         null,
-        true);
+        true,
+        filterForApi);
     }
   }
 }

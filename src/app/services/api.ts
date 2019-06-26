@@ -112,7 +112,7 @@ export class ApiService {
         // login successful if there's a jwt token in the response
         if (res && res.accessToken) {
           this.token = res.accessToken;
-
+          window.localStorage.clear();
           // store username and jwt token in local storage to keep user logged in between page refreshes
           window.localStorage.setItem('currentUser', JSON.stringify({ username: username, token: this.token }));
 

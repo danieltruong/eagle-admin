@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 
+import { AddEditContactComponent } from './contacts/add-edit-contact/add-edit-contact.component';
 import { LoginComponent } from './login/login.component';
 import { NotAuthorizedComponent } from './not-authorized/not-authorized.component';
 import { SearchComponent } from './search/search.component';
@@ -18,6 +19,8 @@ import { ActivityComponentResolver } from './activity/activity-component-resolve
 import { CanDeactivateGuard } from 'app/services/can-deactivate-guard.service';
 import { AddEditActivityComponent } from './activity/add-edit-activity/add-edit-activity.component';
 import { TopicsResolver } from './administration/topics/topics-resolver.services';
+import { AddOrganizationResolver } from './contacts/add-organization/add-organization-resolver.services';
+import { AddOrganizationComponent } from './contacts/add-organization/add-organization.component';
 
 const routes: Routes = [
   {
@@ -50,6 +53,17 @@ const routes: Routes = [
   {
     path: 'metrics',
     component: MetricsComponent
+  },
+  {
+    path: 'contacts/add/add-org',
+    component: AddOrganizationComponent,
+    resolve: {
+      organization: AddOrganizationResolver
+    }
+  },
+  {
+    path: 'contacts/add',
+    component: AddEditContactComponent,
   },
   {
     path: 'contacts',
@@ -104,6 +118,7 @@ const routes: Routes = [
     CanDeactivateGuard,
     ContactsResolverService,
     ActivityComponentResolver,
+    AddOrganizationResolver,
     TopicsResolver
   ]
 })

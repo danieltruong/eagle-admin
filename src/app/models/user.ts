@@ -24,8 +24,7 @@ export class User {
 
   constructor(obj?: any) {
     Object.keys(obj).map(e => {
-        console.log(`key= ${e} value = ${obj[e]}`);
-        this[`${e}`] = `${obj[e]}`;
+      this[`${e}`] = `${obj[e]}`;
     });
   }
 }

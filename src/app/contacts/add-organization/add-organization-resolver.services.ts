@@ -6,7 +6,7 @@ import { SearchService } from 'app/services/search.service';
 import { TableTemplateUtils } from 'app/shared/utils/table-template-utils';
 
 @Injectable()
-export class ContactsResolverService implements Resolve<object> {
+export class AddOrganizationResolver implements Resolve<Observable<object>> {
   constructor(
     private searchService: SearchService,
     private tableTemplateUtils: TableTemplateUtils
@@ -14,13 +14,18 @@ export class ContactsResolverService implements Resolve<object> {
 
   resolve(route: ActivatedRouteSnapshot): Observable<object> {
     let tableParams = this.tableTemplateUtils.getParamsFromUrl(route.params);
-
-    return this.searchService.getSearchResults(tableParams.keywords,
-      'User',
+    if (tableParams.sortBy === '') {
+      tableParams.sortBy = '-name';
+      this.tableTemplateUtils.updateUrl(tableParams.sortBy, tableParams.currentPage, tableParams.pageSize, null, tableParams.keywords);
+    }
+    return this.searchService.getSearchResults(
+      tableParams.keywords || '',
+      'Organization',
       null,
       tableParams.currentPage,
       tableParams.pageSize,
       tableParams.sortBy,
-      {});
+      {},
+      false);
   }
 }

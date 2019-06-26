@@ -63,6 +63,8 @@ import { AddEditActivityComponent } from './activity/add-edit-activity/add-edit-
 import { RecentActivityService } from './services/recent-activity';
 import { SearchHelpComponent } from './search-help/search-help.component';
 import { ActivityDetailTableRowsComponent } from './activity/activity-detail-table-rows/activity-detail-table-rows.component';
+import { AddEditContactComponent } from './contacts/add-edit-contact/add-edit-contact.component';
+import { AddOrganizationComponent } from './contacts/add-organization/add-organization.component';
 
 export function kcFactory(keycloakService: KeycloakService) {
   return () => keycloakService.init();
@@ -74,6 +76,7 @@ export function kcFactory(keycloakService: KeycloakService) {
     AppComponent,
     ConfirmComponent,
     DayCalculatorModalComponent,
+    AddEditContactComponent,
     AddEditTopicComponent,
     FooterComponent,
     HeaderComponent,
@@ -94,7 +97,8 @@ export function kcFactory(keycloakService: KeycloakService) {
     ActivityTableRowsComponent,
     ActivityDetailTableRowsComponent,
     AddEditActivityComponent,
-    SearchHelpComponent
+    SearchHelpComponent,
+    AddOrganizationComponent,
   ],
   imports: [
     BrowserAnimationsModule,
@@ -145,12 +149,13 @@ export function kcFactory(keycloakService: KeycloakService) {
   entryComponents: [
     ConfirmComponent,
     DayCalculatorModalComponent,
-    AddEditTopicComponent,
     AddEditActivityComponent,
+    AddEditContactComponent,
+    AddEditTopicComponent,
     TopicTableRowsComponent,
     UserTableRowsComponent,
     ActivityTableRowsComponent,
-    ActivityDetailTableRowsComponent
+    ActivityDetailTableRowsComponent,
   ],
   bootstrap: [AppComponent]
 })

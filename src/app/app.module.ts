@@ -70,6 +70,9 @@ import { GroupTableRowsComponent } from './project/project-groups/group-contact/
 import { AddEditContactComponent } from './contacts/add-edit-contact/add-edit-contact.component';
 import { AddOrganizationComponent } from './contacts/add-organization/add-organization.component';
 import { AddOrganizationTableRowsComponent } from './contacts/add-organization/add-organization-table-rows/add-organization-table-rows.component';
+import { OrganizationsComponent } from './organizations/organizations.component';
+import { OrganizationsTableRowsComponent } from './organizations/organizations-table-rows/organizations-table-rows.component';
+import { AddEditOrganizationComponent } from './organizations/add-edit-organization/add-edit-organization.component';
 
 export function kcFactory(keycloakService: KeycloakService) {
   return () => keycloakService.init();
@@ -77,37 +80,40 @@ export function kcFactory(keycloakService: KeycloakService) {
 
 @NgModule({
   declarations: [
+    ActivityComponent,
+    ActivityDetailTableRowsComponent,
+    ActivityTableRowsComponent,
+    AddEditActivityComponent,
+    AddEditContactComponent,
+    AddEditOrganizationComponent,
+    AddEditTopicComponent,
+    AddOrganizationComponent,
+    AddOrganizationTableRowsComponent,
     AdministrationComponent,
     AppComponent,
     ConfirmComponent,
+    ContactsComponent,
     DayCalculatorModalComponent,
-    InputModalComponent,
-    AddEditContactComponent,
-    AddEditTopicComponent,
     FooterComponent,
+    GroupTableRowsComponent,
     HeaderComponent,
-    ToggleButtonComponent,
     HomeComponent,
+    InputModalComponent,
     LoginComponent,
-    NotAuthorizedComponent,
-    ProjectComponent,
-    SearchComponent,
-    SidebarComponent,
-    TopicsComponent,
-    TopicTableRowsComponent,
     MapComponent,
     MetricsComponent,
-    ActivityComponent,
-    ContactsComponent,
-    GroupTableRowsComponent,
-    UserTableRowsComponent,
+    NotAuthorizedComponent,
+    OrganizationsComponent,
+    OrganizationsTableRowsComponent,
     PinsTableRowsComponent,
-    ActivityTableRowsComponent,
-    ActivityDetailTableRowsComponent,
-    AddEditActivityComponent,
+    ProjectComponent,
+    SearchComponent,
     SearchHelpComponent,
-    AddOrganizationComponent,
-    AddOrganizationTableRowsComponent
+    SidebarComponent,
+    ToggleButtonComponent,
+    TopicsComponent,
+    TopicTableRowsComponent,
+    UserTableRowsComponent
   ],
   imports: [
     BrowserAnimationsModule,
@@ -146,32 +152,33 @@ export function kcFactory(keycloakService: KeycloakService) {
     CurrencyPipe,
     DecisionService,
     DocumentService,
-    // FeatureService,
     ProjectService,
     RecentActivityService,
     SearchService,
-    UserService,
-    TopicService,
     SideBarService,
+    TopicService,
+    UserService,
     ValuedComponentService
   ],
   entryComponents: [
-    ConfirmComponent,
-    DayCalculatorModalComponent,
-    InputModalComponent,
-    AddEditTopicComponent,
+    ActivityDetailTableRowsComponent,
+    ActivityTableRowsComponent,
     AddEditActivityComponent,
     AddEditContactComponent,
+    AddEditOrganizationComponent,
+    AddEditTopicComponent,
     AddEditTopicComponent,
     AddOrganizationComponent,
-    TopicTableRowsComponent,
+    AddOrganizationTableRowsComponent,
+    ConfirmComponent,
+    DayCalculatorModalComponent,
     GroupsTableRowsComponent,
     GroupTableRowsComponent,
-    UserTableRowsComponent,
+    InputModalComponent,
+    OrganizationsTableRowsComponent,
     PinsTableRowsComponent,
-    ActivityTableRowsComponent,
-    ActivityDetailTableRowsComponent,
-    AddOrganizationTableRowsComponent
+    TopicTableRowsComponent,
+    UserTableRowsComponent
   ],
   bootstrap: [AppComponent]
 })

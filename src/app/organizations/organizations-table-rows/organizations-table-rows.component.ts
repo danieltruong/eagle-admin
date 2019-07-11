@@ -1,0 +1,30 @@
+import { Component, Input, OnInit } from '@angular/core';
+
+import { TableObject } from 'app/shared/components/table-template/table-object';
+import { Router } from '@angular/router';
+
+@Component({
+  selector: 'app-organizations-table-rows',
+  templateUrl: './organizations-table-rows.component.html',
+  styleUrls: ['./organizations-table-rows.component.scss']
+})
+export class OrganizationsTableRowsComponent implements OnInit {
+  @Input() data: TableObject;
+
+  public organizations: any;
+  public paginationData: any;
+  public dropdownItems = ['Edit', 'Delete'];
+
+  constructor(
+    private router: Router
+  ) { }
+
+  ngOnInit() {
+    this.organizations = this.data.data;
+    this.paginationData = this.data.paginationData;
+  }
+
+  editItem(contact) {
+    this.router.navigate(['c/', contact._id, 'edit']);
+  }
+}

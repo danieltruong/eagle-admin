@@ -1,7 +1,5 @@
 import { Component, HostBinding, OnInit } from '@angular/core';
-import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
-import { Observable } from 'rxjs';
-import { container } from '@angular/core/src/render3/instructions';
+import { Router, NavigationEnd } from '@angular/router';
 
 import { SideBarService } from 'app/services/sidebar.service';
 import { filter } from 'rxjs/operators';
@@ -25,14 +23,14 @@ export class SidebarComponent implements OnInit {
   isOpen = false;
 
   constructor(private router: Router,
-              private storageService: StorageService,
-              private sideBarService: SideBarService) {
+    private storageService: StorageService,
+    private sideBarService: SideBarService) {
 
     router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(event => {
-        this.routerSnapshot = event;
-        this.SetActiveSidebarItem();
+      this.routerSnapshot = event;
+      this.SetActiveSidebarItem();
     });
   }
 
@@ -43,7 +41,7 @@ export class SidebarComponent implements OnInit {
   }
 
   SetActiveSidebarItem() {
-    let urlArray =  this.routerSnapshot.url.split('/');
+    let urlArray = this.routerSnapshot.url.split('/');
     // urlArray[0] will be empty so we use shift to get rid of it.
     urlArray.shift();
     if (urlArray[0] === 'p') {

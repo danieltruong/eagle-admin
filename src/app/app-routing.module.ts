@@ -13,7 +13,7 @@ import { ContactsComponent } from './contacts/contacts.component';
 import { ActivityComponent } from './activity/activity.component';
 import { SearchHelpComponent } from './search-help/search-help.component';
 
-import { ContactsResolverService } from './contacts/contacts-resolver.service';
+import { ContactsResolver } from './contacts/contacts-resolver.service';
 import { ActivityComponentResolver } from './activity/activity-component-resolver.services';
 
 import { CanDeactivateGuard } from 'app/services/can-deactivate-guard.service';
@@ -21,10 +21,13 @@ import { AddEditActivityComponent } from './activity/add-edit-activity/add-edit-
 import { TopicsResolver } from './administration/topics/topics-resolver.services';
 import { PinsGlobalComponentResolver } from './project/pins-list/pins-global-resolver.service';
 import { ProjectGroupResolver } from './project/project-groups/project-group-resolver.services';
-import { ProjectContactsGroupResolverService } from './project/project-groups/project-contact-group-resolver.services';
+import { ProjectContactsGroupResolver } from './project/project-groups/project-contact-group-resolver.services';
 import { AddOrganizationResolver } from './contacts/add-organization/add-organization-resolver.services';
 import { AddOrganizationComponent } from './contacts/add-organization/add-organization.component';
 import { EditContactResolver } from './contacts/add-edit-contact/edit-contact-resolver.services';
+import { OrganizationsComponent } from './organizations/organizations.component';
+import { OrganizationsResolver } from './organizations/organizations-resolver.service';
+import { AddEditOrganizationComponent } from './organizations/add-edit-organization/add-edit-organization.component';
 
 const routes: Routes = [
   {
@@ -34,6 +37,17 @@ const routes: Routes = [
   {
     path: 'administration',
     component: AdministrationComponent
+  },
+  {
+    path: 'administration/orgs',
+    component: OrganizationsComponent,
+    resolve: {
+      orgs: OrganizationsResolver
+    }
+  },
+  {
+    path: 'administration/orgs/add',
+    component: AddEditOrganizationComponent
   },
   {
     path: 'administration/topics',
@@ -87,7 +101,7 @@ const routes: Routes = [
     path: 'contacts',
     component: ContactsComponent,
     resolve: {
-      users: ContactsResolverService
+      users: ContactsResolver
     }
   },
   {
@@ -134,13 +148,14 @@ const routes: Routes = [
   ],
   providers: [
     CanDeactivateGuard,
-    ContactsResolverService,
+    ContactsResolver,
     EditContactResolver,
     ProjectGroupResolver,
-    ProjectContactsGroupResolverService,
+    ProjectContactsGroupResolver,
     PinsGlobalComponentResolver,
     ActivityComponentResolver,
     AddOrganizationResolver,
+    OrganizationsResolver,
     TopicsResolver
   ]
 })

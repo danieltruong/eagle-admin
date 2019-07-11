@@ -4,7 +4,6 @@ export class Org {
   _id: String;
   description: String;
   name: String;
-  code: String;
   updatedBy: String;
   dateAdded: String;
   country: String;
@@ -24,7 +23,6 @@ export class Org {
     this._id = obj && obj._id || null;
     this.description = obj && obj.description || undefined;
     this.name = obj && obj.name || undefined;
-    this.code = obj && obj.code || undefined;
     this.updatedBy = obj && obj.updatedBy || undefined;
     this.dateAdded = obj && obj.dateAdded || undefined;
     this.country = obj && obj.country || undefined;

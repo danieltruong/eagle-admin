@@ -158,6 +158,24 @@ export class LinkOrganizationComponent implements OnInit, OnDestroy {
     this.onSubmit(this.tableParams.currentPage);
   }
 
+  createOrganization() {
+    this.storageService.state.contactForm = null;
+    this.storageService.state.selectedOrganization = null;
+    this.storageService.state.backUrl = null;
+    this.storageService.state.editGroupBackUrl = null;
+
+    if (!this.isEditing) {
+      this.storageService.state.editGroupBackUrl = {
+        url: ['/contacts', 'add', 'link-org'],
+        currentProject: this.currentProject
+      };
+    } else {
+
+    }
+
+    this.router.navigate(['/orgs', 'add']);
+  }
+
   ngOnDestroy() {
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();

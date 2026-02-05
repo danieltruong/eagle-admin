@@ -26,8 +26,8 @@
   window.__env.KEYCLOAK_ENABLED = true;
   window.__env.REDIRECT_KEY = 'REDIRECT';
 
-  // Analytics - for local dev, use localhost penguin-analytics (port 3001)
-  // For deployed: use /api/analytics which rproxy routes to penguin-analytics
-  window.__env.ANALYTICS_API_URL = 'http://localhost:3001';
+  // Analytics - for local dev, use /api/analytics (proxy routes to localhost:3001)
+  // For deployed: fetched from /api/config (points to penguin-analytics service URL)
+  window.__env.ANALYTICS_API_URL = '/api/analytics';
   window.__env.ANALYTICS_DEBUG = true;
 }(this));

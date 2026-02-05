@@ -48,8 +48,8 @@ export class AnalyticsService {
   initialize(): void {
     if (this.initialized) return;
 
-    const config = this.configService.config;
-    const apiUrl = config['ANALYTICS_API_URL'];
+    const config = this.configService.config();
+    const apiUrl = config.ANALYTICS_API_URL;
     
     // Skip analytics if no API URL configured
     if (!apiUrl) {
@@ -58,7 +58,7 @@ export class AnalyticsService {
       return;
     }
 
-    const debug = config['ANALYTICS_DEBUG'] ?? (config['ENVIRONMENT'] === 'local');
+    const debug = config.ANALYTICS_DEBUG ?? (config.ENVIRONMENT === 'local');
 
     const plugin = penguinAnalyticsPlugin({ apiUrl, sourceApp: 'eagle-admin', debug });
     this.plugin = plugin as unknown as PluginWithStartTracking;
@@ -67,7 +67,6 @@ export class AnalyticsService {
     
     console.log('Analytics initialized with API URL:', apiUrl);
   }
-
   startTracking(): void {
     if (!this.initialized) {
       console.warn('Analytics not initialized, call initialize() first');

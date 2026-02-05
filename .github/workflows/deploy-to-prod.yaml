@@ -1,11 +1,6 @@
 name: Deploy to Prod
 
 on:
-  push:
-    branches:
-      - promotion/prod
-    paths:
-      - state.json
   workflow_dispatch:
 
 permissions: write-all
@@ -15,21 +10,38 @@ env:
   IMAGE_NAME: eagle-admin
 
 jobs:
-  deploy:
-    name: Deploy to Prod
+  build:
+    name: Build
     runs-on: ubuntu-latest
-    outputs:
-      COMMIT_SHA: ${{ steps.read-hash.outputs.SHA }}
+    strategy:
+      matrix:
+        node-version: [22.x]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
         with:
-          ref: "promotion/prod"
+          node-version: ${{ matrix.node-version }}
+          cache: "yarn"
+      
+      - run: yarn install --immutable
 
-      - name: Retrieve previous commit hash
-        id: read-hash
-        run: echo "SHA=$(jq -r '.commit' state.json)" >> $GITHUB_OUTPUT
+      - name: Update env.js for prod environment
+        run: |
+          # Update env.js to enable configEndpoint and set ENVIRONMENT for prod
+          sed -i "s|window.__env.configEndpoint = false;|window.__env.configEndpoint = true;|g" src/env.js
+          sed -i "s|window.__env.ENVIRONMENT = 'local';|window.__env.ENVIRONMENT = 'prod';|g" src/env.js
+          echo "Updated env.js for prod environment:"
+          grep -E "configEndpoint|ENVIRONMENT" src/env.js
 
+      - name: Angular Build
+        run: yarn build
+  
       - name: Install OpenShift CLI
         run: |
           curl -LO "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz"
@@ -44,21 +56,16 @@ jobs:
           openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
           namespace: ${{ env.OPENSHIFT_NAMESPACE }}
 
-      - name: Tag image
+      - name: Build and push Docker image
         run: |
-          oc -n ${{ env.OPENSHIFT_NAMESPACE }} tag --reference-policy='local' ${{ env.IMAGE_NAME }}:prod ${{ env.IMAGE_NAME }}:prod-backup
-          oc -n ${{ env.OPENSHIFT_NAMESPACE }} tag --reference-policy='local' ${{ env.IMAGE_NAME }}:test ${{ env.IMAGE_NAME }}:prod
-
-  sync-main-branch:
-    name: Rebase Prod
-    needs: deploy
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          ref: "main"
-      - run: |
-          git fetch origin test
-          git rebase ${{needs.deploy.outputs.COMMIT_SHA}} main
-          git push origin main
+          # Build Docker image
+          docker build -f Dockerfile.Github -t ${{ env.IMAGE_NAME }}:prod .
+          
+          # Login to OpenShift registry
+          docker login -u $(oc whoami) -p $(oc whoami -t) image-registry.apps.silver.devops.gov.bc.ca
+          
+          # Tag and push to OpenShift registry
+          docker tag ${{ env.IMAGE_NAME }}:prod image-registry.apps.silver.devops.gov.bc.ca/${{ env.OPENSHIFT_NAMESPACE }}/${{ env.IMAGE_NAME }}:prod
+          docker push image-registry.apps.silver.devops.gov.bc.ca/${{ env.OPENSHIFT_NAMESPACE }}/${{ env.IMAGE_NAME }}:prod
+          
+          echo "Image pushed. DeploymentConfig will auto-rollout new image."

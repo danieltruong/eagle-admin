@@ -19,15 +19,15 @@ export class KeycloakService {
   };
 
   async init() {
-    // Load up the config service data
-    this.keycloakEnabled = this.configService.config['KEYCLOAK_ENABLED'];
-    this.keycloakUrl = this.configService.config['KEYCLOAK_URL'];
-    this.keycloakRealm = this.configService.config['KEYCLOAK_REALM'];
+    // Load up the config service data (call signal to get current value)
+    const config = this.configService.config();
+    this.keycloakEnabled = config.KEYCLOAK_ENABLED;
+    this.keycloakUrl = config.KEYCLOAK_URL;
+    this.keycloakRealm = config.KEYCLOAK_REALM;
 
     if (this.keycloakEnabled) {
       // Bootup KC
-      const keycloak_client_id =
-        this.configService.config['KEYCLOAK_CLIENT_ID'];
+      const keycloak_client_id = config.KEYCLOAK_CLIENT_ID;
 
       return new Promise<void>((resolve, reject) => {
         const config = {
@@ -204,7 +204,8 @@ export class KeycloakService {
    * @memberof KeycloakService
    */
   login(idpHint: string) {
-    let redirectUri = localStorage.getItem(this.configService.config.REDIRECT_KEY) || window.location.href;
+    const redirectKey = this.configService.config().REDIRECT_KEY || 'REDIRECT';
+    let redirectUri = localStorage.getItem(redirectKey) || window.location.href;
     // by default keycloak login will want to redirect back to the login page
     // redirect to '/dayuse' instead
     if (redirectUri.endsWith('/login')) {

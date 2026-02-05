@@ -2,6 +2,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ApiService } from './api';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { signal } from '@angular/core';
 import { ConfigService } from './config.service';
 import { Utils } from 'src/app/shared/utils/utils';
 import { KeycloakService } from './keycloak.service';
@@ -18,15 +19,19 @@ describe('api', () => {
   const filter = {};
   let apiService: ApiService;
   let httpTestingController: HttpTestingController;
-  let mockConfigService: jasmine.SpyObj<ConfigService>;
+  let mockConfigService: any;
 
   beforeEach(async () => {
-    mockConfigService = jasmine.createSpyObj('ConfigService', ['init'], {
-      config: {
-        API_PATH: 'https://test-api.gov.bc.ca/api',
-        ENVIRONMENT: 'test'
-      }
-    });
+    mockConfigService = {
+      init: jasmine.createSpy('init'),
+      config: signal({
+        API_PATH: '/api',
+        API_LOCATION: 'https://test-api.gov.bc.ca',
+        ENVIRONMENT: 'test',
+        BANNER_COLOUR: 'red'
+      }),
+      getApiPath: () => 'https://test-api.gov.bc.ca/api'
+    };
 
     TestBed.configureTestingModule({
       imports: [],

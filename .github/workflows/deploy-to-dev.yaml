@@ -1,4 +1,4 @@
-name: Deploy to Dev
+name: CI - Build and Deploy to Dev
 
 on:
   push:
@@ -44,12 +44,11 @@ jobs:
 
       - name: Update env.js for dev environment
         run: |
-          # Update env.js to enable configEndpoint for deployed environment
-          # In deployed environments, nginx proxies /api to the backend
+          # Update env.js to enable configEndpoint and set ENVIRONMENT for dev
           sed -i "s|window.__env.configEndpoint = false;|window.__env.configEndpoint = true;|g" src/env.js
           sed -i "s|window.__env.ENVIRONMENT = 'local';|window.__env.ENVIRONMENT = 'dev';|g" src/env.js
           echo "Updated env.js for dev environment:"
-          cat src/env.js
+          grep -E "configEndpoint|ENVIRONMENT" src/env.js
 
       - name: Angular Build
         run: yarn build

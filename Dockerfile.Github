@@ -1,8 +1,0 @@
-FROM image-registry.apps.silver.devops.gov.bc.ca/6cdc9e-tools/eagle-admin-nginx-runtime
-
-# Copy default.conf with analytics reverse proxy configuration
-COPY openshift/templates/nginx-runtime/default.conf /etc/nginx/conf.d/default.conf
-
-COPY dist /tmp/app/dist/admin
-
-CMD ["/usr/libexec/s2i/run"]

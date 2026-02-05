@@ -11,61 +11,31 @@ env:
 
 jobs:
   build:
-    name: Build
+    name: Build and Push Image
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [22.x]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Enable Corepack
-        run: corepack enable
+      - name: Get Short SHA
+        id: short-sha
+        run: echo "SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-      - name: Use Node.js 22
-        uses: actions/setup-node@v4
+      - name: Login to OpenShift registry
+        uses: docker/login-action@v3
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: "yarn"
-      
-      - run: yarn install --immutable
-
-      - name: Update env.js for prod environment
-        run: |
-          # Update env.js to enable configEndpoint and set ENVIRONMENT for prod
-          sed -i "s|window.__env.configEndpoint = false;|window.__env.configEndpoint = true;|g" src/env.js
-          sed -i "s|window.__env.ENVIRONMENT = 'local';|window.__env.ENVIRONMENT = 'prod';|g" src/env.js
-          echo "Updated env.js for prod environment:"
-          grep -E "configEndpoint|ENVIRONMENT" src/env.js
-
-      - name: Angular Build
-        run: yarn build
-  
-      - name: Install OpenShift CLI
-        run: |
-          curl -LO "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz"
-          tar -xvzf openshift-client-linux.tar.gz
-          sudo mv oc /usr/local/bin/
-          rm -f openshift-client-linux.tar.gz
-
-      - name: Log into OpenShift
-        uses: redhat-actions/oc-login@v1
-        with:
-          openshift_server_url: ${{ secrets.OPENSHIFT_URL }}
-          openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
-          namespace: ${{ env.OPENSHIFT_NAMESPACE }}
+          registry: ${{ secrets.OPENSHIFT_REPOSITORY }}
+          username: ${{ secrets.OPENSHIFT_REPOSITORY_USERNAME }}
+          password: ${{ secrets.OPENSHIFT_REPOSITORY_PASSWORD }}
 
       - name: Build and push Docker image
-        run: |
-          # Build Docker image
-          docker build -f Dockerfile.Github -t ${{ env.IMAGE_NAME }}:prod .
-          
-          # Login to OpenShift registry
-          docker login -u $(oc whoami) -p $(oc whoami -t) image-registry.apps.silver.devops.gov.bc.ca
-          
-          # Tag and push to OpenShift registry
-          docker tag ${{ env.IMAGE_NAME }}:prod image-registry.apps.silver.devops.gov.bc.ca/${{ env.OPENSHIFT_NAMESPACE }}/${{ env.IMAGE_NAME }}:prod
-          docker push image-registry.apps.silver.devops.gov.bc.ca/${{ env.OPENSHIFT_NAMESPACE }}/${{ env.IMAGE_NAME }}:prod
-          
-          echo "Image pushed. DeploymentConfig will auto-rollout new image."
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.OPENSHIFT_REPOSITORY }}/${{ env.OPENSHIFT_NAMESPACE }}/${{ env.IMAGE_NAME }}:prod
+            ${{ secrets.OPENSHIFT_REPOSITORY }}/${{ env.OPENSHIFT_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ steps.short-sha.outputs.SHA }}
+          labels: |
+            commit.id=${{ github.sha }}
+            commit.timestamp=${{ github.event.head_commit.timestamp }}
